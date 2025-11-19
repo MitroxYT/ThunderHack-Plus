@@ -20,6 +20,7 @@ public class NoSlow extends Module {
 
     public final Setting<Mode> mode = new Setting<>("Mode", Mode.NCP);
     private final Setting<Boolean> mainHand = new Setting<>("MainHand", true);
+    private final Setting<Boolean> noSprint = new Setting<>("NoSprint", false, v-> mode.is(Mode.GrimV3));
     private final Setting<SettingGroup> selection = new Setting<>("Selection", new SettingGroup(false, 0));
     private final Setting<Boolean> food = new Setting<>("Food", true).addToGroup(selection);
     private final Setting<Boolean> projectiles = new Setting<>("Projectiles", true).addToGroup(selection);
@@ -134,7 +135,15 @@ public class NoSlow extends Module {
 
         if (mode.getValue() == Mode.MusteryGrief && mc.player.isOnGround() && !mc.options.jumpKey.isPressed())
             return false;
-
+        if (mode.getValue() == Mode.GrimV3) {
+            if (((mc.player.getItemUseTime() > 0) && mc.player.getItemUseTime() % 2 == 0)) {
+                //   debug("preslow");
+               if (!noSprint.getValue()) {
+                    mc.player.setSprinting(true);
+                }
+                return false;
+            }
+        }
         if (!mainHand.getValue() && mc.player.getActiveHand() == Hand.MAIN_HAND)
             return false;
 
@@ -146,6 +155,6 @@ public class NoSlow extends Module {
     }
 
     public enum Mode {
-        NCP, StrictNCP, Matrix, Grim, MusteryGrief, GrimNew, Matrix2, LFCraft, Matrix3
+        NCP, StrictNCP, Matrix, Grim, MusteryGrief, GrimNew, Matrix2, LFCraft, Matrix3,GrimV3
     }
 }
