@@ -48,7 +48,7 @@ public class Scaffold extends Module {
     private final Setting<Integer> renderLineWidth = new Setting<>("RenderLineWidth", 2, 1, 5).addToGroup(renderCategory);
 
     private enum Mode {
-        NCP, StrictNCP, Grim
+        NCP, StrictNCP, Grim,NoRotate
     }
 
     private enum Switch {

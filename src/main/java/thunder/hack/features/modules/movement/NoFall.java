@@ -5,6 +5,7 @@ import net.minecraft.item.Items;
 import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 import thunder.hack.events.impl.EventSync;
 import thunder.hack.events.impl.EventTick;
 import thunder.hack.events.impl.PacketEvent;
@@ -23,6 +24,8 @@ public class NoFall extends Module {
     public final Setting<Mode> mode = new Setting<>("Mode", Mode.Rubberband);
     public final Setting<FallDistance> fallDistance = new Setting<>("FallDistance", FallDistance.Calc);
     public final Setting<Integer> fallDistanceValue = new Setting<>("FallDistanceVal", 10, 2, 100, v -> fallDistance.getValue() == FallDistance.Custom);
+    public final Setting<Float> jump = new Setting<>("Jump", 0.42f,0.1f,1.1f, v -> mode.getValue() == Mode.GroundSplit);
+    public final Setting<Float> block = new Setting<>("block", 1.0f,0.1f,4.1f, v -> mode.getValue() == Mode.GroundSplit);
     private final Setting<Boolean> powderSnowBucket = new Setting<>("PowderSnowBucket", true, v -> mode.getValue() == Mode.Items);
     private final Setting<Boolean> waterBucket = new Setting<>("WaterBucket", true, v -> mode.getValue() == Mode.Items);
     private final Setting<Boolean> retrieve = new Setting<>("Retrieve", true, v -> mode.getValue() == Mode.Items && waterBucket.getValue());
@@ -34,7 +37,7 @@ public class NoFall extends Module {
 
     private boolean retrieveFlag;
     private boolean cancelGround = false;
-
+    private boolean jumpTriggered = false;
     @EventHandler
     public void onSync(EventSync e) {
         if (fullNullCheck())
@@ -178,6 +181,21 @@ public class NoFall extends Module {
     @EventHandler
     public void onPacketSend(PacketEvent.Send e) {
         if (e.getPacket() instanceof PlayerMoveC2SPacket pac) {
+            if (mode.getValue() == Mode.GroundSplit && isFalling()) {
+                mc.player.getWorld().getBlockCollisions(mc.player, mc.player.getBoundingBox().offset(0.0, (-block.getValue()), 0.0)).forEach(shape-> {
+                    if (!shape.isEmpty()) {
+                        if (!jumpTriggered) {
+                            Vec3d velocity = mc.player.getVelocity();
+                            mc.player.setVelocity(new Vec3d(velocity.x, jump.getValue(), velocity.z));
+                            jumpTriggered = true;
+                        }
+                    }
+                });
+
+            }
+            if (mc.player.isOnGround()) {
+                jumpTriggered = false;
+            }
             if (cancelGround)
                 ((IPlayerMoveC2SPacket) pac).setOnGround(false);
         }
@@ -189,7 +207,7 @@ public class NoFall extends Module {
     }
 
     private enum Mode {
-        Rubberband, Items, MatrixOffGround, Vanilla, Grim2b2t
+        Rubberband, Items, MatrixOffGround, Vanilla, Grim2b2t,GroundSplit
     }
 
     private enum FallDistance {
