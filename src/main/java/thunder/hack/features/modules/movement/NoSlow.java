@@ -21,6 +21,7 @@ public class NoSlow extends Module {
     public final Setting<Mode> mode = new Setting<>("Mode", Mode.NCP);
     private final Setting<Boolean> mainHand = new Setting<>("MainHand", true);
     private final Setting<Boolean> noSprint = new Setting<>("NoSprint", false, v-> mode.is(Mode.GrimV3));
+    private final Setting<Integer> ticks = new Setting<>("Delay", 2, 0, 20,v-> mode.is(Mode.GrimV3));
     private final Setting<SettingGroup> selection = new Setting<>("Selection", new SettingGroup(false, 0));
     private final Setting<Boolean> food = new Setting<>("Food", true).addToGroup(selection);
     private final Setting<Boolean> projectiles = new Setting<>("Projectiles", true).addToGroup(selection);
@@ -136,7 +137,7 @@ public class NoSlow extends Module {
         if (mode.getValue() == Mode.MusteryGrief && mc.player.isOnGround() && !mc.options.jumpKey.isPressed())
             return false;
         if (mode.getValue() == Mode.GrimV3) {
-            if (((mc.player.getItemUseTime() > 0) && mc.player.getItemUseTime() % 2 == 0)) {
+            if (((mc.player.getItemUseTime() > 0) && mc.player.getItemUseTime() % ticks.getValue() == 0)) {
                 //   debug("preslow");
                if (!noSprint.getValue()) {
                     mc.player.setSprinting(true);
