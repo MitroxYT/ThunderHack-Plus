@@ -142,8 +142,9 @@ public class NoSlow extends Module {
                if (!noSprint.getValue()) {
                     mc.player.setSprinting(true);
                 }
-                return false;
+                return true;
             }
+            else return false;
         }
         if (!mainHand.getValue() && mc.player.getActiveHand() == Hand.MAIN_HAND)
             return false;
