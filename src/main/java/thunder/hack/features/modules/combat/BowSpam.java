@@ -2,6 +2,7 @@ package thunder.hack.features.modules.combat;
 
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket;
+import net.minecraft.util.math.Direction;
 import thunder.hack.events.impl.EventSync;
 import thunder.hack.features.modules.Module;
 import thunder.hack.setting.Setting;
@@ -23,7 +24,7 @@ public class BowSpam extends Module {
     public void onSync(EventSync event) {
         if ((mc.player.getOffHandStack().getItem() == Items.BOW || mc.player.getMainHandStack().getItem() == Items.BOW) && mc.player.isUsingItem()) {
             if (mc.player.getItemUseTime() >= this.ticks.getValue()) {
-                sendPacket(new PlayerActionC2SPacket(PlayerActionC2SPacket.Action.RELEASE_USE_ITEM, BlockPos.ORIGIN, mc.player.getHorizontalFacing()));
+                sendPacket(new PlayerActionC2SPacket(PlayerActionC2SPacket.Action.RELEASE_USE_ITEM, BlockPos.ORIGIN, Direction.DOWN));
                 sendSequencedPacket(id -> new PlayerInteractItemC2SPacket(mc.player.getOffHandStack().getItem() == Items.BOW ? Hand.OFF_HAND : Hand.MAIN_HAND, id, mc.player.getYaw(), mc.player.getPitch()));
                 mc.player.stopUsingItem();
             }

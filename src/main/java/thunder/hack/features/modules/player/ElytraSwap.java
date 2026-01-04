@@ -10,6 +10,7 @@ import net.minecraft.network.packet.c2s.play.PlayerInteractItemC2SPacket;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.util.Hand;
 import thunder.hack.core.Managers;
+import thunder.hack.core.manager.client.ModuleManager;
 import thunder.hack.events.impl.PacketEvent;
 import thunder.hack.features.modules.Module;
 import thunder.hack.setting.Setting;
@@ -135,6 +136,15 @@ public class ElytraSwap extends Module {
                         swapping = false;
                     });
                 else {
+                    if (mc.player.isSprinting()) {
+                        //    sendPacket(new ClientCommandC2SPacket(mc.player, ClientCommandC2SPacket.Mode.STOP_SPRINTING));
+                        debug("STOPSPRINT");
+                        if (ModuleManager.autoSprint.isEnabled()) ModuleManager.autoSprint.toggle();
+                        mc.player.setSprinting(false);
+                        mc.options.sprintKey.setPressed(false);
+                        sendMessage("Нажмите еще раз чтобы подтвердить свап");
+                        return;
+                    }
                     clickSlot(slot);
                     clickSlot(6);
                     clickSlot(slot);
@@ -166,6 +176,15 @@ public class ElytraSwap extends Module {
                     swapping = false;
                 }).start();
             else {
+                if (mc.player.isSprinting()) {
+                //    sendPacket(new ClientCommandC2SPacket(mc.player, ClientCommandC2SPacket.Mode.STOP_SPRINTING));
+                    debug("STOPSPRINT");
+                    if (ModuleManager.autoSprint.isEnabled()) ModuleManager.autoSprint.toggle();
+                    mc.player.setSprinting(false);
+                    mc.options.sprintKey.setPressed(false);
+                    sendMessage("Нажмите еще раз чтобы подтвердить свап");
+                    return;
+                }
                 clickSlot(result.slot());
                 clickSlot(6);
                 clickSlot(result.slot());
