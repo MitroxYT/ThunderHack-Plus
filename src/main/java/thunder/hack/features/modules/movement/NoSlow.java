@@ -7,6 +7,7 @@ import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket;
 import net.minecraft.network.packet.c2s.play.PlayerInteractItemC2SPacket;
 import net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket;
 import net.minecraft.util.Hand;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import thunder.hack.events.impl.EventKeyboardInput;
 import thunder.hack.features.modules.Module;
@@ -146,6 +147,15 @@ public class NoSlow extends Module {
             }
             else return false;
         }
+        if (mode.getValue() == Mode.GrimLast) {
+            if (mc.player.getActiveHand() == Hand.OFF_HAND) return false;
+            if (mc.player.getItemUseTime() < 4) return false;
+        if (mc.player.getItemUseTime() == 5) {
+            sendPacket(new PlayerActionC2SPacket(PlayerActionC2SPacket.Action.DROP_ALL_ITEMS, BlockPos.ORIGIN, mc.player.getHorizontalFacing()));
+        }
+        if (mc.player.getItemUseTime() > 6) return true;
+        }
+
         if (!mainHand.getValue() && mc.player.getActiveHand() == Hand.MAIN_HAND)
             return false;
 
@@ -157,6 +167,6 @@ public class NoSlow extends Module {
     }
 
     public enum Mode {
-        NCP, StrictNCP, Matrix, Grim, MusteryGrief, GrimNew, Matrix2, LFCraft, Matrix3,GrimV3
+        NCP, StrictNCP, Matrix, Grim, MusteryGrief, GrimNew, Matrix2, LFCraft, Matrix3,GrimV3,GrimLast
     }
 }

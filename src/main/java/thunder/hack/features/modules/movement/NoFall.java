@@ -32,6 +32,7 @@ public class NoFall extends Module {
     private final Setting<Boolean> enderPearl = new Setting<>("EnderPearl", true, v -> mode.getValue() == Mode.Items);
     private final Setting<Boolean> cobweb = new Setting<>("Cobweb", true, v -> mode.getValue() == Mode.Items);
     private final Setting<Boolean> twistingVines = new Setting<>("TwistingVines", true, v -> mode.getValue() == Mode.Items);
+    private final Setting<Boolean> windcharge = new Setting<>("WindCharge", true, v -> mode.getValue() == Mode.Items);
 
     private thunder.hack.utility.Timer pearlCooldown = new thunder.hack.utility.Timer();
 

@@ -4,6 +4,7 @@ import meteordevelopment.orbit.EventHandler;
 import meteordevelopment.orbit.EventPriority;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
+import net.minecraft.network.packet.s2c.common.DisconnectS2CPacket;
 import org.lwjgl.glfw.GLFW;
 import thunder.hack.events.impl.*;
 import thunder.hack.features.modules.Module;
@@ -123,6 +124,7 @@ public class FreeCam extends Module {
 
     @EventHandler
     public void onPacketSend(PacketEvent.Send e) {
+        if (e.getPacket() instanceof DisconnectS2CPacket) disable("fix bug");
         if (freeze.getValue() && e.getPacket() instanceof PlayerMoveC2SPacket)
             e.cancel();
     }

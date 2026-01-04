@@ -42,7 +42,7 @@ public class Velocity extends Module {
 
     private boolean doJump, failJump, skip, flag;
     private int grimTicks, ccCooldown;
-
+    private int transactionSplit;
 
     @EventHandler
     public void onPacketReceive(PacketEvent.Receive e) {
