@@ -161,6 +161,7 @@ public class NoSlow extends Module {
             if (mc.player.getActiveHand() == Hand.MAIN_HAND) return false;
             if (mc.player.getItemUseTime() == 2) {
                 sendPacket(new UpdateSelectedSlotC2SPacket(mc.player.getInventory().selectedSlot % 7 + 2));
+                //нужно чтобы обойти BadPacketE
                 sendPacket(new PlayerMoveC2SPacket.Full(mc.player.getX(), mc.player.getY(), mc.player.getZ(), ((IClientPlayerEntity) mc.player).getLastYaw(), ((IClientPlayerEntity) mc.player).getLastPitch(), mc.player.isOnGround()));
                 sendPacket(new UpdateSelectedSlotC2SPacket(mc.player.getInventory().selectedSlot));
             }
