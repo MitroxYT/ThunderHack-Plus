@@ -5,12 +5,14 @@ import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.Items;
 import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket;
 import net.minecraft.network.packet.c2s.play.PlayerInteractItemC2SPacket;
+import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
 import net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import thunder.hack.events.impl.EventKeyboardInput;
 import thunder.hack.features.modules.Module;
+import thunder.hack.injection.accesors.IClientPlayerEntity;
 import thunder.hack.setting.Setting;
 import thunder.hack.setting.impl.SettingGroup;
 
@@ -155,6 +157,15 @@ public class NoSlow extends Module {
         }
         if (mc.player.getItemUseTime() > 6) return true;
         }
+        if (mode.getValue() == Mode.UnknownAC) {
+            if (mc.player.getActiveHand() == Hand.MAIN_HAND) return false;
+            if (mc.player.getItemUseTime() == 2) {
+                sendPacket(new UpdateSelectedSlotC2SPacket(mc.player.getInventory().selectedSlot % 7 + 2));
+                sendPacket(new PlayerMoveC2SPacket.Full(mc.player.getX(), mc.player.getY(), mc.player.getZ(), ((IClientPlayerEntity) mc.player).getLastYaw(), ((IClientPlayerEntity) mc.player).getLastPitch(), mc.player.isOnGround()));
+                sendPacket(new UpdateSelectedSlotC2SPacket(mc.player.getInventory().selectedSlot));
+            }
+            if (mc.player.getItemUseTime() > 2) return true;
+        }
 
         if (!mainHand.getValue() && mc.player.getActiveHand() == Hand.MAIN_HAND)
             return false;
@@ -167,6 +178,6 @@ public class NoSlow extends Module {
     }
 
     public enum Mode {
-        NCP, StrictNCP, Matrix, Grim, MusteryGrief, GrimNew, Matrix2, LFCraft, Matrix3,GrimV3,GrimLast
+        NCP, StrictNCP, Matrix, Grim, MusteryGrief, GrimNew, Matrix2, LFCraft, Matrix3,GrimV3,GrimLast,UnknownAC
     }
 }
