@@ -4,18 +4,19 @@ import meteordevelopment.orbit.EventHandler;
 import net.minecraft.client.gui.screen.ChatScreen;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
-import net.minecraft.network.packet.c2s.play.ClickSlotC2SPacket;
-import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
-import net.minecraft.network.packet.c2s.play.CloseHandledScreenC2SPacket;
-import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
+import net.minecraft.network.packet.c2s.play.*;
 import net.minecraft.screen.slot.SlotActionType;
+import net.minecraft.util.Hand;
 import thunder.hack.events.impl.EventClickSlot;
 import thunder.hack.events.impl.PacketEvent;
 import thunder.hack.features.modules.Module;
 import thunder.hack.setting.Setting;
+import thunder.hack.utility.Timer;
 import thunder.hack.utility.player.MovementUtility;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -27,13 +28,18 @@ public class GuiMove extends Module {
     private final Setting<Bypass> clickBypass = new Setting<>("Bypass", Bypass.None);
     private final Setting<Boolean> rotateOnArrows = new Setting<>("RotateOnArrows", true);
     private final Setting<Boolean> sneak = new Setting<>("sneak", false);
+    private thunder.hack.utility.Timer timer = new Timer();
 
-    private final Queue<ClickSlotC2SPacket> storedClicks = new LinkedList<>();
+    //private final Queue<ClickSlotC2SPacket> storedClicks = new LinkedList<>();
+    private final List<ClickSlotC2SPacket> packets = new ArrayList<>();
     private AtomicBoolean pause = new AtomicBoolean();
 
     @Override
     public void onUpdate() {
         if (mc.currentScreen != null && !(mc.currentScreen instanceof ChatScreen)) {
+            if (!timer.passedMs(900)) {
+                for (KeyBinding k : new KeyBinding[]{mc.options.forwardKey, mc.options.backKey, mc.options.leftKey, mc.options.rightKey, mc.options.jumpKey, mc.options.sprintKey}) k.setPressed(false); return;
+            }
             for (KeyBinding k : new KeyBinding[]{mc.options.forwardKey, mc.options.backKey, mc.options.leftKey, mc.options.rightKey, mc.options.jumpKey, mc.options.sprintKey})
                 k.setPressed(isKeyPressed(InputUtil.fromTranslationKey(k.getBoundKeyTranslationKey()).getCode()));
 
@@ -70,10 +76,11 @@ public class GuiMove extends Module {
 
     @EventHandler
     public void onPacketSend(PacketEvent.Send e) {
-        if (!MovementUtility.isMoving() || !mc.options.jumpKey.isPressed() || pause.get())
+        if (!MovementUtility.isMoving() || pause.get())
             return;
 
         if (e.getPacket() instanceof ClickSlotC2SPacket click) {
+            sendMessage("m: " + clickBypass.getValue());
             switch (clickBypass.getValue()) {
                 case GrimSwap -> {
                     if (click.getActionType() != SlotActionType.PICKUP && click.getActionType() != SlotActionType.PICKUP_ALL)
@@ -103,19 +110,28 @@ public class GuiMove extends Module {
                     mc.player.input.pressingForward = false;
                 }
 
-                case Delay -> {
-                    storedClicks.add(click);
+                case GrimAC -> {
+                    sendMessage("Aa");
+                    packets.add(click);
                     e.cancel();
                 }
             }
         }
 
         if (e.getPacket() instanceof CloseHandledScreenC2SPacket) {
-            if (clickBypass.is(Bypass.Delay)) {
+            if (clickBypass.is(Bypass.GrimAC) && !packets.isEmpty()) {
                 pause.set(true);
-                while (!storedClicks.isEmpty())
-                    sendPacket(storedClicks.poll());
-                pause.set(false);
+             //   if (mc.player.isSprinting()) sendPacket(new ClientCommandC2SPacket(mc.player, ClientCommandC2SPacket.Mode.STOP_SPRINTING));
+                for (ClickSlotC2SPacket packet : packets) {
+                    sendPacket(packet);
+                    try {
+                        Thread.sleep(50L);
+                    } catch (InterruptedException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+                packets.clear();
+                timer.reset();
             }
         }
     }
@@ -129,6 +145,6 @@ public class GuiMove extends Module {
     }
 
     private enum Bypass {
-        DisableClicks, None, StrictNCP, GrimSwap, MatrixNcp, Delay, StrictNCP2
+        DisableClicks, None, StrictNCP, GrimSwap, MatrixNcp, GrimAC, StrictNCP2
     }
 }

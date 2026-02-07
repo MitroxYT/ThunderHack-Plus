@@ -611,7 +611,9 @@ public class Aura extends Module {
         }
         return angle;
     }
+    public void resetRot() {
 
+    }
     public void onRender3D(MatrixStack stack) {
         if (!haveWeapon() || target == null)
             return;

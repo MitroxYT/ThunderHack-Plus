@@ -1,6 +1,7 @@
 package thunder.hack.features.modules.movement;
 
 import meteordevelopment.orbit.EventHandler;
+import net.minecraft.client.util.InputUtil;
 import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket;
 import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
 import net.minecraft.network.packet.s2c.common.CommonPingS2CPacket;
@@ -9,7 +10,9 @@ import net.minecraft.network.packet.s2c.play.ExplosionS2CPacket;
 import net.minecraft.network.packet.s2c.play.PlayerPositionLookS2CPacket;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.MathHelper;
 import thunder.hack.core.manager.client.ModuleManager;
+import thunder.hack.events.impl.EventMove;
 import thunder.hack.events.impl.PacketEvent;
 import thunder.hack.features.modules.Module;
 import thunder.hack.injection.accesors.IClientPlayerEntity;
@@ -205,6 +208,44 @@ public class Velocity extends Module {
             grimTicks--;
     }
 
+    @EventHandler
+    public void onMove(EventMove event) {
+        if (mode.is(modeEn.Polar)) {
+            if (mc.player.hurtTime >= 1 & mc.player.hurtTime < 6) {
+                double multi = 1.2224324;
+                double min = 0.1;
+                double max = 0.5;
+                if (MovementUtility.isMoving() && mc.player.isOnGround() && isValidMotion(mc.player.getVelocity().getX(), min, max) && isValidMotion(mc.player.getVelocity().getZ(), min, max)) {
+                    mc.player.setVelocity(mc.player.getVelocity().getX() - MathHelper.sin((float) multi) * min, mc.player.getVelocity().getY(), mc.player.getVelocity().getX() + MathHelper.cos((float) multi) * max);
+                }
+            }
+        }
+        if (mode.is(modeEn.GrimJump)) {
+         //   sendMessage("time: " + mc.player.hurtTime);
+            if (mc.player.hurtTime != 9 && mc.player.hurtTime > 0) {
+            //mc.player.jump();
+                if (mc.player.hurtTime == 6 && mc.player.isOnGround()) mc.player.jump();
+                mc.options.forwardKey.setPressed(true);
+                if (mc.player.hurtTime % 2==0) {
+                    mc.options.sneakKey.setPressed(true);
+                    float airFactor = mc.player.isOnGround() ? 1.0F : 0.98F;
+                    mc.player.setVelocity(0.3 * mc.player.getVelocity().getX() * airFactor,mc.player.getVelocity().getY(),0.3 * mc.player.getVelocity().getZ() * airFactor);
+                }
+                else mc.options.sneakKey.setPressed(isKeyPressed(InputUtil.fromTranslationKey(mc.options.sneakKey.getBoundKeyTranslationKey()).getCode()));
+            }
+            else {
+                mc.options.forwardKey.setPressed(isKeyPressed(InputUtil.fromTranslationKey(mc.options.forwardKey.getBoundKeyTranslationKey()).getCode()));
+                mc.options.sneakKey.setPressed(isKeyPressed(InputUtil.fromTranslationKey(mc.options.sneakKey.getBoundKeyTranslationKey()).getCode()));
+            }
+//            double multi = 1.2224324;
+//            double min = 0.1;
+//            double max = 0.5;
+//            //if (MovementUtility.isMoving() && mc.player.isOnGround() && isValidMotion(mc.player.getVelocity().getX(), min, max) && isValidMotion(mc.player.getVelocity().getZ(), min, max)) {
+//                mc.player.setVelocity(mc.player.getVelocity().getX() - MathHelper.sin((float) multi) * min, mc.player.getVelocity().getY(), mc.player.getVelocity().getX() + MathHelper.cos((float) multi) * max);
+//            }
+        }
+    }
+
     private boolean isValidMotion(double motion, double min, double max) {
         return Math.abs(motion) > min && Math.abs(motion) < max;
     }
@@ -215,7 +256,7 @@ public class Velocity extends Module {
     }
 
     public enum modeEn {
-        Matrix, Cancel, Sunrise, Custom, Redirect, OldGrim, Jump, GrimNew
+        Matrix, Cancel, Sunrise, Custom, Redirect, OldGrim, Jump, GrimNew,Polar,GrimJump
     }
 
     public enum jumpModeEn {

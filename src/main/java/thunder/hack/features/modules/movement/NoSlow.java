@@ -140,7 +140,7 @@ public class NoSlow extends Module {
         if (mode.getValue() == Mode.MusteryGrief && mc.player.isOnGround() && !mc.options.jumpKey.isPressed())
             return false;
         if (mode.getValue() == Mode.GrimV3) {
-            if (((mc.player.getItemUseTime() > 0) && mc.player.getItemUseTime() % ticks.getValue() == 0)) {
+            if (((mc.player.getItemUseTime() > 0) && ticks.getValue() > 0 && mc.player.getItemUseTime() % ticks.getValue() == 0)) {
                 //   debug("preslow");
                if (!noSprint.getValue()) {
                     mc.player.setSprinting(true);
