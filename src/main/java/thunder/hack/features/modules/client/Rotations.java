@@ -19,7 +19,17 @@ public class Rotations extends Module {
 
     private final Setting<MoveFix> moveFix = new Setting<>("MoveFix", MoveFix.Off);
     public final Setting<Boolean> clientLook = new Setting<>("ClientLook", false);
-
+    public final Setting<Boolean> fixBadPacketsJ = new Setting<>("HookToRotation",false);
+    public float getCorrectYaw() {
+        float yaw = mc.player.getYaw();
+        if (ModuleManager.aura.isEnabled()) yaw = ModuleManager.aura.rotationYaw;
+        return yaw;
+    }
+    public float getCorrectPitch() {
+        float pitch = mc.player.getYaw();
+        if (ModuleManager.aura.isEnabled()) pitch = ModuleManager.aura.rotationPitch;
+        return pitch;
+    }
     private enum MoveFix {
         Off, Focused, Free
     }

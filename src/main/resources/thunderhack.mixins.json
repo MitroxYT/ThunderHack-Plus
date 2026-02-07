@@ -72,6 +72,7 @@
     "MixinBlockItem",
     "MixinBoatEntity",
     "MixinBoatEntityRenderer",
+    "MixinClientUseItem",
     "MixinCobwebBlock",
     "MixinEndCrystal",
     "MixinEntity",

@@ -35,6 +35,9 @@ import thunder.hack.core.manager.client.ModuleManager;
 import thunder.hack.events.impl.EventSync;
 import thunder.hack.events.impl.PacketEvent;
 import thunder.hack.events.impl.PlayerUpdateEvent;
+import thunder.hack.features.modules.combat.aura.api.RotationHandler;
+import thunder.hack.features.modules.combat.aura.impl.GrimRotation;
+import thunder.hack.features.modules.combat.aura.impl.StandartRotation;
 import thunder.hack.gui.notification.Notification;
 import thunder.hack.injection.accesors.ILivingEntity;
 import thunder.hack.features.modules.Module;
@@ -64,15 +67,18 @@ import static thunder.hack.features.modules.client.ClientSettings.isRu;
 import static thunder.hack.utility.math.MathUtility.random;
 
 public class Aura extends Module {
+    private RotationHandler rotationComponent;
     public final Setting<Float> attackRange = new Setting<>("Range", 3.1f, 1f, 6.0f);
+    public final Setting<Boolean> rotationSystemComponent = new Setting<>("UseNewRotation",false);
+    public final Setting<Mode> rotationMode = new Setting<>("RotationMode", Mode.Track,v->!rotationSystemComponent.getValue());
     public final Setting<Float> wallRange = new Setting<>("ThroughWallsRange", 3.1f, 0f, 6.0f);
     public final Setting<Boolean> elytra = new Setting<>("ElytraOverride",false);
     public final Setting<Float> elytraAttackRange = new Setting<>("ElytraRange", 3.1f, 1f, 6.0f, v -> elytra.getValue());
     public final Setting<Float> elytraWallRange = new Setting<>("ElytraThroughWallsRange", 3.1f, 0f, 6.0f,v -> elytra.getValue());
     public final Setting<WallsBypass> wallsBypass = new Setting<>("WallsBypass", WallsBypass.Off, v -> getWallRange() > 0);
     public final Setting<Integer> fov = new Setting<>("FOV", 180, 1, 180);
-    public final Setting<Mode> rotationMode = new Setting<>("RotationMode", Mode.Track);
-    public final Setting<Integer> interactTicks = new Setting<>("InteractTicks", 3, 1, 10, v -> rotationMode.getValue() == Mode.Interact);
+    public final Setting<RotMode> rotMode = new Setting<>("RotationMode", RotMode.Standart);
+    public final Setting<Integer> interactTicks = new Setting<>("InteractTicks", 3, 1, 10, v -> rotationMode.getValue() == Mode.Interact || rotationSystemComponent.getValue() && rotationComponent != null && rotationComponent.isSnap());
     public final Setting<Switch> switchMode = new Setting<>("AutoWeapon", Switch.None);
     public final Setting<Boolean> onlyWeapon = new Setting<>("OnlyWeapon", false, v -> switchMode.getValue() != Switch.Silent);
     public final Setting<BooleanSettingGroup> smartCrit = new Setting<>("SmartCrit", new BooleanSettingGroup(true));
@@ -147,7 +153,7 @@ public class Aura extends Module {
     public final Setting<Boolean> ignoreShield = new Setting<>("AttackShieldingEntities", true).addToGroup(targets);
 
     public static Entity target;
-
+    Vec3d targetVec;
     public float rotationYaw;
     public float rotationPitch;
     public float pitchAcceleration = 1f;
@@ -521,10 +527,34 @@ public class Aura extends Module {
             return;
 
 
-        Vec3d targetVec;
-
         if (mc.player.isFallFlying() || ModuleManager.elytraPlus.isEnabled()) targetVec = target.getEyePos();
-        else targetVec = getLegitLook(target);
+        else if (rotationSystemComponent.getValue()) {
+            switch (rotMode.getValue()) {
+                case Standart -> rotationComponent = new StandartRotation();
+                case Grim -> rotationComponent = new GrimRotation();
+            }
+            //rotationComponent = new StandartRotation();
+           targetVec = rotationComponent.getRotationVector(target,targetVec);
+           if (rotationComponent.isSnap()) {
+               if (trackticks > 0) {
+                   rotationYaw = (float) targetVec.x;
+                   rotationPitch = (float) targetVec.y;
+                   ModuleManager.rotations.fixRotation = rotationYaw;
+                   lookingAtHitbox = Managers.PLAYER.checkRtx(rotationYaw, rotationPitch, getRange(), getWallRange(), rayTrace.getValue());
+               }
+               else {
+                   rotationYaw = mc.player.getYaw();
+                   rotationPitch = mc.player.getPitch();
+                   ModuleManager.rotations.fixRotation = rotationYaw;
+               }
+           }else {
+               rotationYaw = (float) targetVec.x;
+               rotationPitch = (float) targetVec.y;
+               ModuleManager.rotations.fixRotation = rotationYaw;
+               lookingAtHitbox = Managers.PLAYER.checkRtx(rotationYaw, rotationPitch, getRange(), getWallRange(), rayTrace.getValue());
+           }
+           return;
+        } else targetVec = getLegitLook(target);
 
         if (targetVec == null)
             return;
@@ -900,6 +930,9 @@ public class Aura extends Module {
 
     public enum Mode {
         Interact, Track, Grim, None
+    }
+    public enum RotMode {
+        Standart,Matrix,Grim
     }
 
     public enum AttackHand {
