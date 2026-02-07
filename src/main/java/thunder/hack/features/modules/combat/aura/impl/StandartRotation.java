@@ -18,8 +18,8 @@ public class StandartRotation implements RotationHandler {
         float pitchToTarget = (float) (-Math.toDegrees(Math.atan2(targetVector.y, Math.hypot(targetVector.x, targetVector.z))) + 12);
         float yawDelta = (float) MathHelper.wrapDegrees(yawToTarget - currentRotation.x);
         float pitchDelta = (float) MathHelper.wrapDegrees(pitchToTarget - currentRotation.y);
-        float yaw = Math.min(Math.max(Math.abs(yawDelta), 3), 9999.0f);
-        float pitch = Math.min(Math.max(Math.abs(pitchDelta), 4), 9999.0f);
+        float yaw = (float) Math.min(Math.max(Math.abs(yawDelta), 0.3), 9999.0f);
+        float pitch = (float) Math.min(Math.max(Math.abs(pitchDelta), 0.4), 9999.0f);
         float yaw33 = (float) (currentRotation.x + (yawDelta > 1.6f ? yaw : -yaw));
         float gcd = (float) (currentRotation.x + (yawDelta > 1.0f ? yaw : -yaw));
         pitch = (float) MathHelper.clamp(currentRotation.y + (pitchDelta > 1.0f ? pitch : -pitch), -91, 89);
