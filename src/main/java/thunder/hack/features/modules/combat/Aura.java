@@ -602,6 +602,15 @@ public class Aura extends Module {
             ModuleManager.rotations.fixRotation = rotationYaw;
         lookingAtHitbox = Managers.PLAYER.checkRtx(rotationYaw, rotationPitch, getRange(), getWallRange(), rayTrace.getValue());
     }
+    public static double normalizeAngle(double angle) {
+        angle %= 360;
+        if (angle > 180) {
+            angle -= 360;
+        } else if (angle < -180) {
+            angle += 360;
+        }
+        return angle;
+    }
 
     public void onRender3D(MatrixStack stack) {
         if (!haveWeapon() || target == null)

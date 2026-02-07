@@ -11,6 +11,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import thunder.hack.core.manager.client.ModuleManager;
 
+import static thunder.hack.ThunderHack.mc;
+
 @Mixin(PlayerInteractItemC2SPacket.class)
 public class MixinClientUseItem {
 
@@ -29,6 +31,10 @@ public class MixinClientUseItem {
         if (ModuleManager.rotations.fixBadPacketsJ.getValue()) {
             this.yaw = ModuleManager.rotations.getCorrectYaw();
             this.pitch = ModuleManager.rotations.getCorrectPitch();
+        }
+        else {
+            this.yaw = mc.player.getYaw();
+            this.pitch = mc.player.getPitch();
         }
     }
 }
