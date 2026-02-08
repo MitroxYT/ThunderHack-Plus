@@ -127,6 +127,6 @@ public final class AntiBot extends Module {
     }
 
     public enum Mode {
-        UUIDCheck, MotionCheck, ZeroPing,LvmAC
+        UUIDCheck, MotionCheck, ZeroPing, LvmAC
     }
 }
