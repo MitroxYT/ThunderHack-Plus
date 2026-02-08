@@ -4,7 +4,11 @@ import meteordevelopment.orbit.EventHandler;
 import net.minecraft.client.network.OtherClientPlayerEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.network.packet.c2s.play.TeleportConfirmC2SPacket;
+import net.minecraft.network.packet.s2c.play.EntitiesDestroyS2CPacket;
+import net.minecraft.network.packet.s2c.play.EntityPositionS2CPacket;
 import thunder.hack.events.impl.EventSync;
+import thunder.hack.events.impl.PacketEvent;
 import thunder.hack.features.modules.Module;
 import thunder.hack.features.modules.misc.FakePlayer;
 import thunder.hack.features.modules.render.NameTags;
@@ -13,10 +17,12 @@ import thunder.hack.utility.Timer;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.UUID;
 
 public final class AntiBot extends Module {
     public static ArrayList<PlayerEntity> bots = new ArrayList<>();
+    private HashMap<Integer,Integer> tpCount = new HashMap<>();
     public Setting<Boolean> remove = new Setting<>("Remove", false);
     public Setting<Boolean> onlyAura = new Setting<>("OnlyAura", true);
     private final Setting<Mode> mode = new Setting<>("Mode", Mode.UUIDCheck);
@@ -45,6 +51,34 @@ public final class AntiBot extends Module {
             bots.clear();
             ticks = 0;
             clearTimer.reset();
+            tpCount.clear();
+        }
+    }
+    @EventHandler
+    public void onReceive(PacketEvent.Receive event) {
+        if (mode.getValue() == Mode.LvmAC) {
+            if (event.getPacket() instanceof EntitiesDestroyS2CPacket entitiesDestroyS2CPacket) {
+                    for (int id: entitiesDestroyS2CPacket.getEntityIds()) {
+                        if (tpCount.containsKey(id)) {
+                            tpCount.clear();
+                        }
+                    }
+            }
+            if (event.getPacket() instanceof EntityPositionS2CPacket packet) {
+                if (!bots.isEmpty()) {
+                    for (PlayerEntity entity : bots) {
+                        if (entity.getId() == packet.getId()) return;
+                    }
+                }
+                int tp = tpCount.getOrDefault(packet.getId(), 0);
+                if (tp > 9) {
+                    try {
+                        this.addBot((PlayerEntity) mc.world.getEntityById(packet.getId()));
+                    } catch (NullPointerException ignored) {
+                    }
+                }
+                tpCount.put(packet.getId(), tp + 1);
+            }
         }
     }
 
@@ -78,6 +112,11 @@ public final class AntiBot extends Module {
     }
 
     private void addBot(PlayerEntity entity) {
+        if (entity == null) {
+            this.sendMessage(entity.getId() + " is a bot!");
+            bots.add(entity);
+            return;
+        }
         this.sendMessage(entity.getName().getString() + " is a bot!");
         bots.add(entity);
     }
@@ -88,6 +127,6 @@ public final class AntiBot extends Module {
     }
 
     public enum Mode {
-        UUIDCheck, MotionCheck, ZeroPing
+        UUIDCheck, MotionCheck, ZeroPing,LvmAC
     }
 }
