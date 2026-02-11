@@ -4,7 +4,6 @@ import meteordevelopment.orbit.EventHandler;
 import net.minecraft.client.network.OtherClientPlayerEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.network.packet.c2s.play.TeleportConfirmC2SPacket;
 import net.minecraft.network.packet.s2c.play.EntitiesDestroyS2CPacket;
 import net.minecraft.network.packet.s2c.play.EntityPositionS2CPacket;
 import thunder.hack.events.impl.EventSync;
@@ -22,7 +21,7 @@ import java.util.UUID;
 
 public final class AntiBot extends Module {
     public static ArrayList<PlayerEntity> bots = new ArrayList<>();
-    private HashMap<Integer,Integer> tpCount = new HashMap<>();
+    private HashMap<Integer, Integer> tpCount = new HashMap<>();
     public Setting<Boolean> remove = new Setting<>("Remove", false);
     public Setting<Boolean> onlyAura = new Setting<>("OnlyAura", true);
     private final Setting<Mode> mode = new Setting<>("Mode", Mode.UUIDCheck);
@@ -41,10 +40,10 @@ public final class AntiBot extends Module {
 
         if (remove.getValue())
             bots.forEach(b -> {
-                    try {
-                        mc.world.removeEntity(b.getId(), Entity.RemovalReason.KILLED);
-                    } catch (Exception ignored) {
-                    }
+                try {
+                    mc.world.removeEntity(b.getId(), Entity.RemovalReason.KILLED);
+                } catch (Exception ignored) {
+                }
             });
 
         if (clearTimer.passedMs(10000)) {
@@ -54,15 +53,16 @@ public final class AntiBot extends Module {
             tpCount.clear();
         }
     }
+
     @EventHandler
     public void onReceive(PacketEvent.Receive event) {
         if (mode.getValue() == Mode.LvmAC) {
             if (event.getPacket() instanceof EntitiesDestroyS2CPacket entitiesDestroyS2CPacket) {
-                    for (int id: entitiesDestroyS2CPacket.getEntityIds()) {
-                        if (tpCount.containsKey(id)) {
-                            tpCount.clear();
-                        }
+                for (int id : entitiesDestroyS2CPacket.getEntityIds()) {
+                    if (tpCount.containsKey(id)) {
+                        tpCount.clear();
                     }
+                }
             }
             if (event.getPacket() instanceof EntityPositionS2CPacket packet) {
                 if (!bots.isEmpty()) {
@@ -97,7 +97,7 @@ public final class AntiBot extends Module {
             case MotionCheck -> {
                 double diffX = ent.getX() - ent.prevX;
                 double diffZ = ent.getZ() - ent.prevZ;
-                
+
                 if ((diffX * diffX) + (diffZ * diffZ) > 0.5D) {
                     if (ticks >= checkticks.getValue())
                         this.addBot(ent);
